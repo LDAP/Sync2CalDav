@@ -1,3 +1,5 @@
+loglevel: INFO
+
 caldav:
   url:
   user:

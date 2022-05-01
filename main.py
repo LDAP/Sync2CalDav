@@ -4,11 +4,16 @@
 
 import caldav
 import asyncio
-from typing import Dict, Callable, Awaitable
+from typing import Dict, Callable, Awaitable, Optional
 from interfaces import ToDoSynchronizer
 from caldav.objects import Calendar, Principal
 from configuration import get_config
 from github_notifications import GitHubNotifications
+import logging
+
+
+logging.basicConfig(level=logging.getLevelName(get_config("loglevel", str)))
+LOG = logging.getLogger(__name__)
 
 
 def _get_calendar(principal: Principal) -> Calendar:
@@ -20,9 +25,13 @@ def _get_calendar(principal: Principal) -> Calendar:
     raise KeyError(f"Calendar {calendar_name} does not exist.")
 
 
-async def _run_every(function: Callable[[], Awaitable[None]], timeout_s: int):
+async def _run_every(function: Callable[[], Awaitable[None]], timeout_s: int, name: Optional[str] = None):
     while True:
+        if name:
+            LOG.info(f"Running {name}")
         await function()
+        if name:
+            LOG.info(f"Finished {name}")
         await asyncio.sleep(timeout_s)
 
 
@@ -43,7 +52,7 @@ async def main():
 
         await asyncio.gather(
             *[
-                _run_every(lambda: syncr.sync_todos(calendar), get_config(f"{key_prefix}.interval", int))
+                _run_every(lambda: syncr.sync_todos(calendar), get_config(f"{key_prefix}.interval", int), key_prefix)
                 for key_prefix, syncr in todo_synchronizer.items()
                 if get_config(f"{key_prefix}.enabled", bool)
             ]
@@ -54,4 +63,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    while True:
+        try:
+            asyncio.run(main())
+        except Exception as e:
+            LOG.warn("Execption occured", e)

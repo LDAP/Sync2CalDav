@@ -9,7 +9,7 @@ from typing import Optional, Dict
 from datetime import datetime, timedelta
 import pytz
 import asyncio
-
+import logging
 import re
 
 
@@ -18,6 +18,7 @@ GITHUB_ID_PREFIX = "GitHub Id: "
 DEFAULT_BASE_URL = "https://api.github.com"
 DEFAULT_TIMEOUT = 15
 DEFAULT_PER_PAGE = 30
+LOG = logging.getLogger(__name__)
 
 
 class GitHubNotifications(ToDoSynchronizer):
@@ -40,7 +41,7 @@ class GitHubNotifications(ToDoSynchronizer):
         todos = calendar.todos(include_completed=True)
         todo_by_github_id: Dict[int, Todo] = {}
 
-        print(f"{len(todos)} todos found")
+        LOG.debug(f"{len(todos)} todos found")
 
         for todo in todos:
             github_id = self._get_github_id(todo)
@@ -50,7 +51,7 @@ class GitHubNotifications(ToDoSynchronizer):
         since = datetime.now() - timedelta(days=get_config("github.notifications.last", int))
         notifications = list(self._g.get_user().get_notifications(all=True, since=since))
 
-        print(f"{len(notifications)} notifications found")
+        LOG.debug(f"{len(notifications)} notifications found")
 
         for n in notifications:
             n_id = int(n.id)
@@ -69,7 +70,7 @@ class GitHubNotifications(ToDoSynchronizer):
 
         for key, todo in todo_by_github_id.items():
             # Todos that were "done" in Github
-            print(f"deleting dangling todo {key}")
+            LOG.info(f"deleting dangling todo {key}")
             todo.delete()
 
     def _get_github_id(self, todo: Todo) -> Optional[int]:
@@ -83,7 +84,7 @@ class GitHubNotifications(ToDoSynchronizer):
             return None
 
     def _sync_todo_with_notification(self, n: Notification, todo: Todo):
-        print(f"update {n.id} {n.subject.title}")
+        LOG.debug(f"update {n.id} {n.subject.title}")
 
         todo_last_modified_attr = get_attr(todo, "LAST-MODIFIED")
         todo_last_modified = None
@@ -110,32 +111,35 @@ class GitHubNotifications(ToDoSynchronizer):
                 self._sync_to_github(n, todo)
 
     def _sync_to_github(self, n: Notification, todo: Todo):
-        print("caldav -> github")
+        LOG.debug("caldav -> github")
         if get_attr(todo, "COMPLETED") and n.unread:
-            print("mark as read")
+            LOG.info(f"mark {n.id} as read")
             n.mark_as_read()
+            return
+        if not get_attr(todo, "COMPLETED") and not n.unread:
+            LOG.info(f"should mark {n.id} as unread. Currently not supported by API")
             return
         # Mark as unread currently not supported by api
 
-        print("do nothing")
+        LOG.debug("do nothing")
         return
 
     def _sync_to_caldav(self, n: Notification, todo: Todo):
-        print("github -> caldav")
+        LOG.debug("github -> caldav")
         if n.unread and get_attr(todo, "COMPLETED"):
-            print("mark as uncompleted")
+            LOG.info(f"mark {n.id} as uncompleted")
             uncomplete(todo)
             return
         if not n.unread and not get_attr(todo, "COMPLETED"):
-            print("mark as completed")
+            LOG.debug(f"mark {n.id} as completed")
             todo.complete()
             return
 
-        print("do nothing")
+        LOG.debug("do nothing")
         return
 
     def _create_todo_from_notification(self, n: Notification, calendar: Calendar):
-        print(f"create {n.id} {n.subject.title}")
+        LOG.info(f"create {n.id} {n.subject.title}")
 
         kwargs = {
             "summary": f"[GH] {n.subject.title}",

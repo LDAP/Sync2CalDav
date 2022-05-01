@@ -10,7 +10,7 @@ CONFIG_FILE = "config.yml"
 
 DEFAULT_CONFIG: Optional[Dict] = None
 CONFIG: Optional[Dict] = None
-LOG = logging.getLogger("configuration")
+LOG = logging.getLogger(__name__)
 
 
 def _load_configs():
