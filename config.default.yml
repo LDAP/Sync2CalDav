@@ -1,0 +1,15 @@
+caldav:
+  url:
+  user:
+  password:
+  calendar:
+
+github:
+  notifications:
+    enabled: false
+    # Interval in seconds
+    interval: 300
+    # Sync only last n days.
+    # Note: Todos that correspond to older entries are deleted
+    last: 90
+    token: 
