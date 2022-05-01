@@ -1,6 +1,6 @@
 # Sync2DavCal
 
-Script that synchronizes various providers with CalDav.
+Synchronize various providers with CalDav.
 
 ## Installation
 
@@ -16,5 +16,5 @@ Overwrite settings from `config.default.yml` by creating a file `config.yml`.
 
 ### GitHub Notifications
 
-Syncs (GitHub notifications)[https://github.com/notifications].
+Synchronize [GitHub notifications](https://github.com/notifications).
 Limitation: Currently the GitHub API does not allow marking notifications as `unread`.
