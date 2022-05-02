@@ -4,7 +4,11 @@ import logging
 from typing import Optional, Any, Dict, Type, TypeVar
 
 
-DEFAULT_CONFIG_FILE = "config.default.yml"
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
+DEFAULT_CONFIG_FILE = os.path.join(__location__, "config.default.yml")
 CONFIG_FILE_PATHS = [
     "config.yml",
     ".config/config.yml",
@@ -34,9 +38,6 @@ def _load_configs():
         LOG.warn(f"config file not found in {CONFIG_FILE_PATHS}!")
 
 
-_load_configs()
-
-
 def _get_config_from_object(key: str, config: Optional[Dict]) -> Optional[Any]:
     if config is None:
         return None
@@ -52,10 +53,14 @@ def _get_config_from_object(key: str, config: Optional[Dict]) -> Optional[Any]:
 
 
 def _get_user_config(key: str):
+    if CONFIG is None:
+        _load_configs()
     return _get_config_from_object(key, CONFIG)
 
 
 def _get_default_config(key: str):
+    if DEFAULT_CONFIG is None:
+        _load_configs()
     return _get_config_from_object(key, DEFAULT_CONFIG)
 
 

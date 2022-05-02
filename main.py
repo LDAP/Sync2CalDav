@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """Sync CalDav with popular providers"""
-
+import logging
 import caldav
 import asyncio
 from typing import Dict, Callable, Awaitable, Optional
@@ -10,11 +10,12 @@ from caldav.objects import Calendar, Principal
 from configuration import get_config
 from github_notifications import GitHubNotifications
 from time import sleep
-import logging
 
-
-logging.basicConfig(level=logging.getLevelName(get_config("loglevel", str)))
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger().setLevel(logging.getLevelName(get_config("loglevel", str)))
 LOG = logging.getLogger(__name__)
+
+
 RETRY_TIMEOUT = 25
 
 
