@@ -114,6 +114,9 @@ class GitHubNotifications(ToDoSynchronizer):
         )
         notification_last_modified = pytz.UTC.localize(notification_last_modified)
 
+        LOG.debug(f"CalDav last modified: {todo_last_modified}")
+        LOG.debug(f"GitHub last modified: {notification_last_modified}")
+
         if todo_last_modified is None and notification_last_modified is None:
             return  # same state
         if todo_last_modified is None:
