@@ -10,7 +10,7 @@ Synchronize various providers with CalDav.
 
 ## Configuration
 
-Overwrite settings from `config.default.yml` by creating a file `config.yml`.
+Overwrite settings from `config.default.yml` by creating a file `config.yml` or `.config/config.yml`.
 
 ## Providers
 

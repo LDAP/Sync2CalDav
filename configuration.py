@@ -2,11 +2,15 @@ import yaml
 import os
 import logging
 from typing import Optional, Any, Dict, Type, TypeVar
-import asyncio
 
 
 DEFAULT_CONFIG_FILE = "config.default.yml"
-CONFIG_FILE = "config.yml"
+CONFIG_FILE_PATHS = [
+    "config.yml",
+    ".config/config.yml",
+    f"{os.getcwd()}/config.yml",
+    f"{os.getcwd()}/.config/config.yml",
+]
 
 DEFAULT_CONFIG: Optional[Dict] = None
 CONFIG: Optional[Dict] = None
@@ -19,11 +23,15 @@ def _load_configs():
     with open(DEFAULT_CONFIG_FILE, "r") as default_config_file:
         DEFAULT_CONFIG = yaml.safe_load(default_config_file)
 
-    if os.path.isfile(CONFIG_FILE):
-        with open(CONFIG_FILE, "r") as config_file:
-            CONFIG = yaml.safe_load(config_file)
+    for config_file_path in CONFIG_FILE_PATHS:
+        LOG.info(f"Search config file in {config_file_path}")
+        if os.path.isfile(config_file_path):
+            with open(config_file_path, "r") as config_file:
+                CONFIG = yaml.safe_load(config_file)
+                LOG.info("Found config file")
+                break
     else:
-        LOG.warn(f"{CONFIG_FILE} not found!")
+        LOG.warn(f"config file not found in {CONFIG_FILE_PATHS}!")
 
 
 _load_configs()

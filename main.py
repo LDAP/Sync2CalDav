@@ -69,5 +69,5 @@ if __name__ == "__main__":
         try:
             asyncio.run(main())
         except Exception as e:
-            LOG.warn(f"Execption occured, retrying in {RETRY_TIMEOUT}s", e)
+            LOG.error(f"Execption occured, restarting in {RETRY_TIMEOUT}s", e)
             sleep(RETRY_TIMEOUT)
