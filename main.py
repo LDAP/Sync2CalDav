@@ -9,11 +9,13 @@ from interfaces import ToDoSynchronizer
 from caldav.objects import Calendar, Principal
 from configuration import get_config
 from github_notifications import GitHubNotifications
+from time import sleep
 import logging
 
 
 logging.basicConfig(level=logging.getLevelName(get_config("loglevel", str)))
 LOG = logging.getLogger(__name__)
+RETRY_TIMEOUT = 25
 
 
 def _get_calendar(principal: Principal) -> Calendar:
@@ -67,4 +69,5 @@ if __name__ == "__main__":
         try:
             asyncio.run(main())
         except Exception as e:
-            LOG.warn("Execption occured", e)
+            LOG.warn(f"Execption occured, retrying in {RETRY_TIMEOUT}s", e)
+            sleep(RETRY_TIMEOUT)
