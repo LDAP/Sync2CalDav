@@ -10,8 +10,8 @@ __location__ = os.path.realpath(
 
 DEFAULT_CONFIG_FILE = os.path.join(__location__, "config.default.yml")
 CONFIG_FILE_PATHS = [
-    "config.yml",
-    ".config/config.yml",
+    os.path.join(__location__, "config.yml"),
+    os.path.join(__location__, ".config/config.yml"),
     f"{os.getcwd()}/config.yml",
     f"{os.getcwd()}/.config/config.yml",
 ]
