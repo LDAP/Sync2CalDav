@@ -19,6 +19,21 @@ DEFAULT_BASE_URL = "https://api.github.com"
 DEFAULT_TIMEOUT = 15
 DEFAULT_PER_PAGE = 30
 LOG = logging.getLogger(__name__)
+# https://docs.github.com/en/rest/activity/notifications#about-notification-reasons
+REASON_HUMAN_READABLE = {
+    "assign": "You were assigned to the issue.",
+    "author": "You created the thread.",
+    "comment": "You commented on the thread.",
+    "ci_activity": "A GitHub Actions workflow run that you triggered was completed.",
+    "invitation": "You accepted an invitation to contribute to the repository.",
+    "manual": "You subscribed to the thread (via an issue or pull request).",
+    "mention": "You were specifically @mentioned in the content.",
+    "review_requested": "You, or a team you're a member of, were requested to review a pull request.",
+    "security_alert": "GitHub discovered a security vulnerability in your repository.",
+    "state_change": "You changed the thread state (for example, closing an issue or merging a pull request).",
+    "subscribed": "You're watching the repository.",
+    "team_mention": "You were on a team that was mentioned.",
+}
 
 
 class GitHubNotifications(ToDoSynchronizer):
@@ -48,8 +63,12 @@ class GitHubNotifications(ToDoSynchronizer):
             if github_id:
                 todo_by_github_id[github_id] = todo
 
-        since = datetime.now() - timedelta(days=get_config("github.notifications.last", int))
-        notifications = list(self._g.get_user().get_notifications(all=True, since=since))
+        since = datetime.now() - timedelta(
+            days=get_config("github.notifications.last", int)
+        )
+        notifications = list(
+            self._g.get_user().get_notifications(all=True, since=since)
+        )
 
         LOG.debug(f"{len(notifications)} notifications found")
 
@@ -119,7 +138,7 @@ class GitHubNotifications(ToDoSynchronizer):
         if not get_attr(todo, "COMPLETED") and not n.unread:
             LOG.info(f"should mark {n.id} as unread. Currently not supported by API")
             return
-        # Mark as unread currently not supported by api
+        # Mark as unread currently not supported by API
 
         LOG.debug("do nothing")
         return
@@ -131,7 +150,7 @@ class GitHubNotifications(ToDoSynchronizer):
             uncomplete(todo)
             return
         if not n.unread and not get_attr(todo, "COMPLETED"):
-            LOG.debug(f"mark {n.id} as completed")
+            LOG.info(f"mark {n.id} as completed")
             todo.complete()
             return
 
@@ -146,11 +165,11 @@ class GitHubNotifications(ToDoSynchronizer):
             "status": "NEEDS-ACTION",
         }
 
-        desc = f"""{n.repository.full_name}
+        desc = f"""[{n.subject.type}] {n.repository.full_name}
 
 {n.repository.description}
 
-You are getting this because you are {n.reason}.
+You are receiving this because {REASON_HUMAN_READABLE[n.reason]}
 
 {GITHUB_ID_PREFIX}{n.id}"""
 
@@ -168,4 +187,5 @@ You are getting this because you are {n.reason}.
         todo = calendar.save_todo(**kwargs)
 
         if not n.unread:
+            LOG.info(f"mark {n.id} as completed")
             todo.complete()
