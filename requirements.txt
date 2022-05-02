@@ -1,4 +1,4 @@
-PyGithub
-caldav
-pyyaml
-icalendar
+PyGithub==1.55
+caldav==0.9.0
+pyyaml==6.0
+icalendar==4.0.9
